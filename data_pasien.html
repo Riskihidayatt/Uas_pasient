@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rumah Sakit Immanuel - Data Pasien</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="logo-container">
+      <img src="src/images/logo (1).jpg" alt="Logo Rumah Sakit Immanuel" class="logo">
+      <h1>Rumah Sakit Immanuel</h1>
+    </div>
+  </header>
+
+  <nav class="navigation-bar">
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="data_pasien.html" class="active">Data Pasien</a></li>
+      <li><a href="data_hasil_lab.html">Data Hasil Lab</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1 class="page-title">Manajemen Data Pasien</h1>
+
+    <!-- Form Input Data Pasien -->
+    <div class="form-container">
+      <h2>Input Data Pasien</h2>
+      <label for="nama">Nama:</label>
+      <input type="text" id="nama" required>
+
+      <label for="umur">Umur:</label>
+      <input type="number" id="umur" required>
+
+      <label for="jenis_kelamin">Jenis Kelamin:</label>
+      <select id="jenis_kelamin" required>
+        <option value="" disabled selected>----------------</option>
+        <option value="P">Perempuan</option>
+        <option value="L">Laki - laki</option>
+      </select>
+
+      <label for="tanggal">Tanggal Periksa:</label>
+      <input type="date" id="tanggal" required>
+
+      <label for="alamat">Alamat:</label>
+      <input type="text" id="alamat" required>
+
+      <label for="diagnosa">Diagnosa:</label>
+      <input type="text" id="diagnosa" required>
+
+      <label for="dokter_pengirim">Dokter Pengirim:</label>
+      <input type="text" id="dokter_pengirim" required>
+
+      <label for="penanggung_jawab">Penanggung Jawab:</label>
+      <input type="text" id="penanggung_jawab" required>
+
+      <button id="submitBtn">Simpan Data</button>
+    </div>
+    <!-- Akhir Form -->
+
+    <!-- Table Data Pasien -->
+    <div class="table-container">
+      <h2>Daftar Data Pasien</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Umur</th>
+            <th>Jenis Kelamin</th>
+            <th>Tanggal Periksa</th>
+            <th>Alamat</th>
+            <th>Diagnosa</th>
+            <th>Dokter Pengirim</th>
+            <th>Penanggung Jawab</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="pasienList"></tbody>
+      </table>
+    </div>
+    <!-- Akhir Table Pasien -->
+  </div>
+
+  <footer class="site-footer">
+    <p>© <span id="currentYear"></span> Rumah Sakit Immanuel. All rights reserved.</p>
+  </footer>
+
+  <script>
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+    // localStorage.clear() // Uncomment for testing to clear storage
+    let dataPasienForEdit = null; // Renamed to avoid conflict with global dataPasien if any
+    let isEditMode = false; // Changed from isSaveButton to be more descriptive
+
+    function generateUniqueId(existingIds) {
+      let id = 1;
+      while (existingIds.includes(id)) {
+        id++;
+      }
+      return id;
+    }
+
+    function simpanData() {
+      const nama = document.getElementById('nama').value.trim();
+      const umur = document.getElementById('umur').value;
+      const alamat = document.getElementById('alamat').value.trim();
+      const jekel = document.getElementById('jenis_kelamin').value;
+      const tanggal = document.getElementById('tanggal').value;
+      const diagnosa = document.getElementById('diagnosa').value.trim();
+      const dokter_pengirim = document.getElementById('dokter_pengirim').value.trim();
+      const penanggung_jawab = document.getElementById('penanggung_jawab').value.trim();
+
+      if (!nama || !umur || !alamat || !jekel || !tanggal || !diagnosa || !dokter_pengirim || !penanggung_jawab) {
+        alert('Silakan isi semua kolom dengan benar.');
+        return;
+      }
+      if (jekel === "") {
+        alert('Silakan pilih jenis kelamin.');
+        return;
+      }
+
+
+      let pasienList = localStorage.getItem('pasienList');
+      pasienList = pasienList ? JSON.parse(pasienList) : [];
+      
+      let pasienData;
+
+      if (isEditMode && dataPasienForEdit) {
+        // Update existing patient
+        pasienData = pasienList.find(p => p.id === dataPasienForEdit.id);
+        if (pasienData) {
+          pasienData.nama = nama;
+          pasienData.umur = parseInt(umur);
+          pasienData.alamat = alamat;
+          pasienData.jekel = jekel;
+          pasienData.tanggal = tanggal;
+          pasienData.diagnosa = diagnosa;
+          pasienData.dokter_pengirim = dokter_pengirim;
+          pasienData.penanggung_jawab = penanggung_jawab;
+          // Lab data remains untouched here, will be edited on the lab page
+        }
+      } else {
+        // Add new patient
+        const existingIds = pasienList.map(p => p.id);
+        const id = generateUniqueId(existingIds);
+        pasienData = {
+          id, nama, umur: parseInt(umur), alamat, jekel, tanggal, diagnosa, dokter_pengirim, penanggung_jawab,
+          hemogoblin: 0, hematokrit: 0, leukosit: 0, eritrosit: 0, trombosit: 0,
+          mcv: 0, mch: 0, mchc: 0, // Initialize lab values
+        };
+        pasienList.push(pasienData);
+      }
+
+      localStorage.setItem('pasienList', JSON.stringify(pasienList));
+      resetForm();
+      tampilkanDatapasien();
+      alert(isEditMode ? 'Data pasien berhasil diperbarui!' : 'Data pasien berhasil disimpan!');
+      isEditMode = false;
+      dataPasienForEdit = null;
+      document.getElementById('submitBtn').textContent = 'Simpan Data';
+    }
+
+    function hapusData(id) {
+      if (!confirm('Apakah Anda yakin ingin menghapus data pasien ini?')) {
+        return;
+      }
+      let pasienList = JSON.parse(localStorage.getItem('pasienList') || '[]');
+      pasienList = pasienList.filter(pasien => pasien.id !== id);
+      localStorage.setItem('pasienList', JSON.stringify(pasienList));
+      tampilkanDatapasien();
+      alert('Data pasien berhasil dihapus.');
+    }
+
+    function editData(id) {
+      let pasienList = JSON.parse(localStorage.getItem('pasienList') || '[]');
+      const pasien = pasienList.find(p => p.id === id);
+
+      if (pasien) {
+        isEditMode = true;
+        dataPasienForEdit = pasien;
+        document.getElementById('nama').value = pasien.nama;
+        document.getElementById('umur').value = pasien.umur;
+        document.getElementById('alamat').value = pasien.alamat;
+        document.getElementById('jenis_kelamin').value = pasien.jekel;
+        document.getElementById('tanggal').value = pasien.tanggal;
+        document.getElementById('diagnosa').value = pasien.diagnosa;
+        document.getElementById('dokter_pengirim').value = pasien.dokter_pengirim;
+        document.getElementById('penanggung_jawab').value = pasien.penanggung_jawab;
+        document.getElementById('submitBtn').textContent = 'Update Data Pasien';
+        window.scrollTo({ top: document.querySelector('.form-container').offsetTop - 20, behavior: 'smooth' });
+      }
+    }
+    
+    function resetForm() {
+        document.getElementById('nama').value = '';
+        document.getElementById('umur').value = '';
+        document.getElementById('alamat').value = '';
+        document.getElementById('jenis_kelamin').value = '';
+        document.getElementById('tanggal').value = '';
+        document.getElementById('diagnosa').value = '';
+        document.getElementById('dokter_pengirim').value = '';
+        document.getElementById('penanggung_jawab').value = '';
+        isEditMode = false;
+        dataPasienForEdit = null;
+        document.getElementById('submitBtn').textContent = 'Simpan Data';
+    }
+
+
+    function tampilkanDatapasien() {
+      const pasienListStorage = localStorage.getItem('pasienList');
+      const pasienListContainer = document.getElementById('pasienList');
+      pasienListContainer.innerHTML = ''; // Clear existing rows
+
+      if (pasienListStorage) {
+        const pasienArray = JSON.parse(pasienListStorage);
+        pasienArray.sort((a, b) => a.id - b.id); // Sort by ID for consistency
+
+        for (const pasien of pasienArray) {
+          const row = pasienListContainer.insertRow();
+          row.innerHTML = `
+            <td>${pasien.nama}</td>
+            <td>${pasien.umur}</td>
+            <td>${pasien.jekel === 'L' ? 'Laki-laki' : 'Perempuan'}</td>
+            <td>${new Date(pasien.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</td>
+            <td>${pasien.alamat}</td>
+            <td>${pasien.diagnosa}</td>
+            <td>${pasien.dokter_pengirim}</td>
+            <td>${pasien.penanggung_jawab}</td>
+            <td>
+                <button class="edit-btn" onclick="editData(${pasien.id})">Edit</button>
+                <button class="delete-btn" onclick="hapusData(${pasien.id})">Hapus</button>
+            </td>
+          `;
+        }
+      }
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', simpanData);
+    document.addEventListener('DOMContentLoaded', tampilkanDatapasien);
+
+    // Active link highlighting
+    document.querySelectorAll('.navigation-bar a').forEach(link => {
+      if (link.href === window.location.href) {
+        link.classList.add('active');
+      }
+    });
+  </script>
+</body>
+</html>

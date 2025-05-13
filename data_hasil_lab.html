@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rumah Sakit Immanuel - Data Hasil Lab</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="logo-container">
+        <img
+          src="src/images/logo (1).jpg"
+          alt="Logo Rumah Sakit Immanuel"
+          class="logo"
+        />
+        <h1>Rumah Sakit Immanuel</h1>
+      </div>
+    </header>
+
+    <nav class="navigation-bar">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="data_pasien.html">Data Pasien</a></li>
+        <li><a href="data_hasil_lab.html" class="active">Data Hasil Lab</a></li>
+      </ul>
+    </nav>
+
+    <div class="container">
+      <h1 class="page-title">Manajemen Data Hasil Lab</h1>
+
+      <!-- Form Input Hasil Lab -->
+      <div class="form-container">
+        <h2>
+          Input Data Hasil Lab
+          <span
+            id="selectedPatientName"
+            style="font-weight: normal; color: #007bff"
+          ></span>
+        </h2>
+        <label for="hemogoblin">Hemoglobin (g/dl):</label>
+        <input type="number" id="hemogoblin" step="0.1" required />
+        <label for="hematokrit">Hematokrit (%):</label>
+        <input type="number" id="hematokrit" step="0.1" required />
+        <label for="leukosit">Leukosit (/mikroliter):</label>
+        <input type="number" id="leukosit" step="100" required />
+        <label for="eritrosit">Eritrosit (juta/mikroliter):</label>
+        <input type="number" id="eritrosit" step="0.01" required />
+        <label for="trombosit">Trombosit (/mikroliter):</label>
+        <input type="number" id="trombosit" step="1000" required />
+        <label for="mcv">MCV (fL):</label>
+        <input type="number" id="mcv" step="0.1" required />
+        <label for="mch">MCH (pg):</label>
+        <input type="number" id="mch" step="0.1" required />
+        <label for="mchc">MCHC (g/dL):</label>
+        <input type="number" id="mchc" step="0.1" required />
+        <button id="submitBtnLab">Simpan Data Lab</button>
+      </div>
+      <!-- Akhir Form -->
+
+      <!-- Table Data Pasien dengan Hasil Lab -->
+      <div class="table-container">
+        <h2>Data Pasien & Hasil Lab</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Nama</th>
+              <th>Alamat</th>
+              <th>Tanggal Periksa</th>
+              <th>Hemoglobin</th>
+              <th>Hematokrit</th>
+              <th>Leukosit</th>
+              <th>Eritrosit</th>
+              <th>Trombosit</th>
+              <th>MCV</th>
+              <th>MCH</th>
+              <th>MCHC</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="pasienLabList"></tbody>
+        </table>
+      </div>
+      <!-- Akhir Table -->
+    </div>
+
+    <footer class="site-footer">
+      <p>
+        © <span id="currentYear"></span> Rumah Sakit Immanuel. All rights
+        reserved.
+      </p>
+    </footer>
+
+    <script>
+      document.getElementById("currentYear").textContent =
+        new Date().getFullYear();
+      // localStorage.clear() // Uncomment for testing
+
+      let selectedPatientForLab = null; // Stores the full patient object being edited
+
+      function populateLabForm(patientId) {
+        let pasienList = JSON.parse(localStorage.getItem("pasienList") || "[]");
+        const patient = pasienList.find((p) => p.id === patientId);
+
+        if (patient) {
+          selectedPatientForLab = patient; // Store the selected patient object
+          document.getElementById(
+            "selectedPatientName"
+          ).textContent = `- Untuk Pasien: ${patient.nama}`;
+
+          document.getElementById("hemogoblin").value =
+            patient.hemogoblin || "";
+          document.getElementById("hematokrit").value =
+            patient.hematokrit || "";
+          document.getElementById("leukosit").value = patient.leukosit || "";
+          document.getElementById("eritrosit").value = patient.eritrosit || "";
+          document.getElementById("trombosit").value = patient.trombosit || "";
+          document.getElementById("mcv").value = patient.mcv || "";
+          document.getElementById("mch").value = patient.mch || "";
+          document.getElementById("mchc").value = patient.mchc || "";
+
+          document.getElementById("submitBtnLab").disabled = false;
+          window.scrollTo({
+            top: document.querySelector(".form-container").offsetTop - 20,
+            behavior: "smooth",
+          });
+        } else {
+          alert("Data pasien tidak ditemukan.");
+          resetLabForm();
+        }
+      }
+
+      function resetLabForm() {
+        document.getElementById("hemogoblin").value = "";
+        document.getElementById("hematokrit").value = "";
+        document.getElementById("leukosit").value = "";
+        document.getElementById("eritrosit").value = "";
+        document.getElementById("trombosit").value = "";
+        document.getElementById("mcv").value = "";
+        document.getElementById("mch").value = "";
+        document.getElementById("mchc").value = "";
+        document.getElementById("selectedPatientName").textContent = "";
+        selectedPatientForLab = null;
+        document.getElementById("submitBtnLab").disabled = true; // Disable button if no patient selected
+      }
+
+      function saveLabData() {
+        if (!selectedPatientForLab) {
+          alert(
+            'Pilih data pasien terlebih dahulu dari tabel di bawah dengan tombol "Edit Lab".'
+          );
+          return;
+        }
+
+        const hemogoblin = parseFloat(
+          document.getElementById("hemogoblin").value
+        );
+        const hematokrit = parseFloat(
+          document.getElementById("hematokrit").value
+        );
+        const leukosit = parseInt(document.getElementById("leukosit").value);
+        const eritrosit = parseFloat(
+          document.getElementById("eritrosit").value
+        );
+        const trombosit = parseInt(document.getElementById("trombosit").value);
+        const mcv = parseFloat(document.getElementById("mcv").value);
+        const mch = parseFloat(document.getElementById("mch").value);
+        const mchc = parseFloat(document.getElementById("mchc").value);
+
+        if (
+          isNaN(hemogoblin) ||
+          isNaN(hematokrit) ||
+          isNaN(leukosit) ||
+          isNaN(eritrosit) ||
+          isNaN(trombosit) ||
+          isNaN(mcv) ||
+          isNaN(mch) ||
+          isNaN(mchc)
+        ) {
+          alert(
+            "Pastikan semua field hasil lab terisi dengan angka yang valid."
+          );
+          return;
+        }
+
+        let pasienList = JSON.parse(localStorage.getItem("pasienList") || "[]");
+        const patientIndex = pasienList.findIndex(
+          (p) => p.id === selectedPatientForLab.id
+        );
+
+        if (patientIndex !== -1) {
+          pasienList[patientIndex] = {
+            ...pasienList[patientIndex], // Keep existing patient details
+            hemogoblin,
+            hematokrit,
+            leukosit,
+            eritrosit,
+            trombosit,
+            mcv,
+            mch,
+            mchc,
+          };
+          localStorage.setItem("pasienList", JSON.stringify(pasienList));
+          tampilkanDataPasienLab();
+          alert(
+            "Data hasil lab berhasil disimpan untuk pasien: " +
+              selectedPatientForLab.nama
+          );
+          resetLabForm();
+        } else {
+          alert("Terjadi kesalahan. Pasien tidak ditemukan untuk update.");
+        }
+      }
+      function tampilkanDataPasienLab() {
+        const pasienListStorage = localStorage.getItem("pasienList");
+        const pasienLabListContainer = document.getElementById("pasienLabList");
+        pasienLabListContainer.innerHTML = ""; // Clear existing rows
+        if (pasienListStorage) {
+          const pasienArray = JSON.parse(pasienListStorage);
+          pasienArray.sort((a, b) => a.id - b.id); // Sort by ID
+          for (const pasien of pasienArray) {
+            const row = pasienLabListContainer.insertRow();
+            row.innerHTML = `
+            <td>${pasien.nama}</td>
+            <td>${pasien.alamat}</td>
+            <td>${new Date(pasien.tanggal).toLocaleDateString("id-ID", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })}</td>
+            <td>${pasien.hemogoblin || "-"}</td>
+            <td>${pasien.hematokrit || "-"}</td>
+            <td>${pasien.leukosit || "-"}</td>
+            <td>${pasien.eritrosit || "-"}</td>
+            <td>${pasien.trombosit || "-"}</td>
+            <td>${pasien.mcv || "-"}</td>
+            <td>${pasien.mch || "-"}</td>
+            <td>${pasien.mchc || "-"}</td>
+            <td>
+              <button class="edit-btn" onclick="populateLabForm(${
+                pasien.id
+              })">Edit Lab</button>
+              <button class="print-btn" onclick="cetakPasien(${
+                pasien.id
+              })">Cetak</button>
+            </td>
+          `;
+          }
+        }
+        if (!selectedPatientForLab) {
+          document.getElementById("submitBtnLab").disabled = true;
+        }
+      }
+
+      //cetak data hasil lab
+      function cetakPasien(id) {
+        const pasienListStorage = localStorage.getItem("pasienList");
+        if (pasienListStorage) {
+          const listDaftar = JSON.parse(pasienListStorage);
+          const selectedPasien = listDaftar.find((pasien) => pasien.id === id);
+          if (selectedPasien) {
+            const printWindow = window.open("", "", "width=800,height=600");
+            // Fungsi helper determineLabRemark (dari langkah sebelumnya, pastikan sudah benar)
+            function determineLabRemark(
+              resultValue,
+              normalRangeString,
+              gender
+            ) {
+              const result = parseFloat(String(resultValue).replace(",", "."));
+              if (
+                resultValue === null ||
+                resultValue === undefined ||
+                resultValue === "-" ||
+                isNaN(result)
+              ) {
+                return "-";
+              }
+              function parseRangeValue(strVal) {
+                const s = String(strVal).trim();
+                // Jika ada titik dan setelah titik ada 3 digit, dan BUKAN format desimal biasa (misal 12.6)
+                if (
+                  s.includes(".") &&
+                  s.split(".")[1] &&
+                  s.split(".")[1].length === 3 &&
+                  !s.match(/^\d+\.\d{1,2}$/)
+                ) {
+                  return parseFloat(s.replace(/\./g, "").replace(",", "."));
+                }
+                return parseFloat(s.replace(",", "."));
+              }
+              let relevantRangeStr = normalRangeString;
+              if (
+                normalRangeString.includes("L:") &&
+                normalRangeString.includes("P:")
+              ) {
+                const parts = normalRangeString.split(";");
+                let lPart = "",
+                  pPart = "";
+                parts.forEach((p) => {
+                  const trimmedPart = p.trim().toUpperCase();
+                  if (trimmedPart.startsWith("L:"))
+                    lPart = trimmedPart.substring(2).trim();
+                  if (trimmedPart.startsWith("P:"))
+                    pPart = trimmedPart.substring(2).trim();
+                });
+                relevantRangeStr =
+                  String(gender).toUpperCase() === "L" ? lPart : pPart;
+              }
+              const rangeParts = relevantRangeStr
+                .split("-")
+                .map((s) => s.trim());
+              if (rangeParts.length !== 2) {
+                console.warn("Invalid normal range format:", normalRangeString);
+                return "";
+              }
+              const minNormal = parseRangeValue(rangeParts[0]);
+              const maxNormal = parseRangeValue(rangeParts[1]);
+              if (isNaN(minNormal) || isNaN(maxNormal)) {
+                console.warn(
+                  "Could not parse min/max from range:",
+                  relevantRangeStr,
+                  minNormal,
+                  maxNormal
+                );
+                return "";
+              }
+              if (result < minNormal) return "L";
+              if (result > maxNormal) return "H";
+              return "";
+            }
+            printWindow.document.write(`
+          <!DOCTYPE html>
+          <html lang="id">
+          <head>
+            <meta charset="UTF-8">
+            <!-- MODIFIKASI: Kosongkan title atau gunakan spasi non-breaking -->
+            <title> </title> 
+            <style>
+              /* MODIFIKASI: Tambahkan @page rule untuk mencoba menghilangkan header/footer browser */
+              @page {
+                size: A4; /* Opsional: tentukan ukuran kertas */
+                margin: 20mm; /* Atur margin halaman sesuai kebutuhan Anda */
+                
+                /* Cobalah untuk mengosongkan konten header/footer default browser.
+                  Dukungan bervariasi antar browser. Pengguna mungkin masih perlu
+                   menonaktifkan header/footer di dialog cetak browser mereka. */
+                @top-left { content: ""; }
+                @top-center { content: ""; }
+                @top-right { content: ""; }
+                @bottom-left { content: ""; }
+                @bottom-center { content: ""; }
+                @bottom-right { content: ""; }
+              }
+              body { 
+                font-family: Arial, sans-serif; 
+                /* margin: 20px; /* Margin sekarang diatur oleh @page */
+                color: #333; 
+              }
+              .print-container { 
+                width: 100%; 
+                /* max-width: 750px; /* Biarkan konten mengisi area cetak yang ditentukan oleh @page margin */
+                margin: 0 auto; 
+              }
+              .header {
+                display: flex; align-items: center; margin-bottom: 20px;
+                border-bottom: 2px solid #000; padding-bottom: 15px;
+              }
+              .header img { max-height: 70px; margin-right: 20px; }
+              .header-text { flex-grow: 1; text-align: center; }
+              .header h1 { font-size: 22px; margin: 5px 0; color: #00509e; }
+              .header p { font-size: 12px; margin: 2px 0; }
+              .section-title { font-size: 18px; font-weight: bold; margin-top: 20px; margin-bottom: 10px; text-align: center; text-decoration: underline; }
+              table.patient-details { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
+              table.patient-details th, table.patient-details td { padding: 6px; text-align: left; font-size: 13px; vertical-align: top;}
+              table.patient-details th { width: 150px; font-weight: normal; }
+              table.lab-results { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+              table.lab-results th, table.lab-results td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+              table.lab-results th { background-color: #8DD8FF; font-weight: bold; }
+              table.lab-results td:first-child { text-align: left; }
+              .footer-signature { margin-top: 50px; text-align: right; font-size: 13px; page-break-inside: avoid; }
+              .footer-signature .signature-line { margin-top: 60px; width: 200px; border-bottom: 1px solid #000; display: inline-block; }
+              .footer-signature p { margin: 2px 0; }
+              
+              @media print {
+                body { 
+                  /* margin: 0; /* Dihapus: @page yang mengatur margin halaman */
+                  -webkit-print-color-adjust: exact; 
+                  print-color-adjust: exact; 
+                }
+                .no-print { display: none; }
+                /* Pastikan .print-container tidak menambah margin/padding sendiri yang bertentangan */
+                .print-container {
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  width: 100% !important;
+                  max-width: none !important;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="print-container">
+              <div class="header">
+                <img src="src/images/logo (1).jpg" alt="Logo RS Immanuel">
+                <div class="header-text">
+                  <h1>Laboratorium RS Immanuel</h1>
+                  <p>Jalan Soekarno Hatta No.1, Way Dadi, Kec. Sukarame, Bandar Lampung</p>
+                  <p>No. Izin : YAY.1.KEP/40.KEP/III.06/2011 | Telp. (0721)704900 | Email: rs.imanuel.bandarlampung@gmail.com</p>
+                </div>
+              </div>
+              <div class="section-title">Hasil Pemeriksaan Laboratorium</div>
+              <table class="patient-details">
+                <tr><th>Nama</th><td>: ${selectedPasien.nama}</td></tr>
+                <tr><th>Umur</th><td>: ${selectedPasien.umur} tahun</td></tr>
+                <tr><th>Jenis Kelamin</th><td>: ${
+                  selectedPasien.jekel === "L" ? "Laki-laki" : "Perempuan"
+                }</td></tr>
+                <tr><th>Tanggal Periksa</th><td>: ${new Date(
+                  selectedPasien.tanggal
+                ).toLocaleDateString("id-ID", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}</td></tr>
+                <tr><th>Alamat</th><td>: ${selectedPasien.alamat}</td></tr>
+                <tr><th>Diagnosa</th><td>: ${
+                  selectedPasien.diagnosa || "-"
+                }</td></tr>
+                <tr><th>Dokter Pengirim</th><td>: ${
+                  selectedPasien.dokter_pengirim || "-"
+                }</td></tr>
+              </table>
+              <table class="lab-results">
+                <thead>
+                  <tr><th>Pemeriksaan</th><th>Hasil</th><th>Satuan</th><th>Nilai Normal</th><th>Keterangan</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Hemoglobin</td>
+                    <td>${selectedPasien.hemogoblin || "-"}</td>
+                    <td>g/dl</td>
+                    <td>L: 12.6-17.4 ; P: 11.7-16.1</td>
+                    <td>${determineLabRemark(
+                      selectedPasien.hemogoblin,
+                      "L: 12.6-17.4 ; P: 11.7-16.1",
+                      selectedPasien.jekel
+                    )}</td>
+                  </tr>
+                  <tr>
+                    <td>Hematokrit</td>
+                    <td>${selectedPasien.hematokrit || "-"}</td>
+                    <td>%</td>
+                    <td>L: 36-52 ; P: 34-64</td>
+                    <td>${determineLabRemark(
+                      selectedPasien.hematokrit,
+                      "L: 36-52 ; P: 34-64",
+                      selectedPasien.jekel
+                    )}</td>
+                  </tr>
+                  <tr>
+                    <td>Leukosit</td>
+                    <td>${selectedPasien.leukosit || "-"}</td>
+                    <td>/mikroliter</td>
+                    <td>4.500-10.500</td>
+                    <td>${determineLabRemark(
+                      selectedPasien.leukosit,
+                      "4.500-10.500",
+                      selectedPasien.jekel
+                    )}</td>
+                  </tr>
+                  <tr>
+                    <td>Eritrosit</td>
+                    <td>${selectedPasien.eritrosit || "-"}</td>
+                    <td>juta/mikroliter</td>
+                    <td>L: 4.7-6.1 ; P: 4.2-5.4</td>
+                    <td>${determineLabRemark(
+                      selectedPasien.eritrosit,
+                      "L: 4.7-6.1 ; P: 4.2-5.4",
+                      selectedPasien.jekel
+                    )}</td>
+                  </tr>
+                  <tr>
+                    <td>Trombosit</td>
+                    <td>${selectedPasien.trombosit || "-"}</td>
+                    <td>/mikroliter</td>
+                    <td>150.000-450.000</td>
+                    <td>${determineLabRemark(
+                      selectedPasien.trombosit,
+                      "150.000-450.000",
+                      selectedPasien.jekel
+                    )}</td>
+                  </tr>
+                  <tr>
+                    <td>MCV</td>
+                    <td>${selectedPasien.mcv || "-"}</td>
+                    <td>fL</td>
+                    <td>80-100</td>
+                    <td>${determineLabRemark(
+                      selectedPasien.mcv,
+                      "80-100",
+                      selectedPasien.jekel
+                    )}</td>
+                  </tr>
+                  <tr>
+                    <td>MCH</td>
+                    <td>${selectedPasien.mch || "-"}</td>
+                    <td>pg</td>
+                    <td>27.5-33.2</td>
+                    <td>${determineLabRemark(
+                      selectedPasien.mch,
+                      "27.5-33.2",
+                      selectedPasien.jekel
+                    )}</td>
+                  </tr>
+                  <tr>
+                    <td>MCHC</td>
+                    <td>${selectedPasien.mchc || "-"}</td>
+                    <td>g/dL</td>
+                    <td>32-36</td>
+                    <td>${determineLabRemark(
+                      selectedPasien.mchc,
+                      "32-36",
+                      selectedPasien.jekel
+                    )}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="footer-signature">
+                <p>Bandar Lampung, ${new Date().toLocaleDateString("id-ID", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}</p>
+                <p>Penanggung Jawab Laboratorium,</p>
+                <div class="signature-line"></div>
+                <p><u>${
+                  selectedPasien.penanggung_jawab || "(Nama Penanggung Jawab)"
+                }</u></p>
+                <p>NIP. 39601032006</p>
+              </div>
+            </div>
+            <script> setTimeout(() => { window.print(); window.close(); }, 500); <\/script>
+          </body>
+          </html>
+          `);
+            printWindow.document.close();
+          } else {
+            alert("Data pasien terpilih tidak ditemukan untuk dicetak.");
+          }
+        } else {
+          alert("Tidak ada data pasien di localStorage.");
+        }
+      }
+      document
+        .getElementById("submitBtnLab")
+        .addEventListener("click", saveLabData);
+      document.addEventListener("DOMContentLoaded", () => {
+        tampilkanDataPasienLab();
+        resetLabForm(); // Ensure form is reset and button disabled on load
+      });
+      // Active link highlighting
+      document.querySelectorAll(".navigation-bar a").forEach((link) => {
+        if (link.href === window.location.href) {
+          link.classList.add("active");
+        }
+      });
+    </script>
+  </body>
+</html>

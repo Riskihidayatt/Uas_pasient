@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rumah Sakit Immanuel - Home</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <marquee>SELAMAT DATANG DI RUMAH SAKIT IMMANUEL</marquee>
+  <header class="site-header">
+    <div class="logo-container">
+      <img src="src/images/logo 1 (1).jpg" alt="Logo Rumah Sakit Immanuel" class="logo">
+      <h1>Rumah Sakit Immanuel</h1>
+    </div>
+  </header>
+  <nav class="navigation-bar">
+    <ul>
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="data_pasien.html">Data Pasien</a></li>
+      <li><a href="data_hasil_lab.html">Data Hasil Lab</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="hero-image-container">
+      <img src="src/images/immanuel rs (1).jpg" alt="Gedung Rumah Sakit Immanuel" class="hero-image">
+    </div>
+    <div class="vision-mission-moto">
+      <div class="section">
+        <h3>Visi</h3>
+        <p>“Menjadi Rumah Sakit yang membawa sukacita (Joyful Hospital).”</p>
+      </div>
+      <hr style="margin: 20px 0; border-color: #eee;">
+      <div class="section">
+        <h3>Misi</h3>
+        <p>
+          Meningkatkan mutu pelayanan berkelanjutan.<br>
+          Memberikan pelayanan dengan mengutamakan keselamatan bagi semua.<br>
+          Memberikan pelayanan kesehatan yang terjangkau.<br>
+          Mengembangkan pelayanan kesehatan terkini.<br>
+          Mengembangkan kompetensi sumber daya manusia.<br>
+          Meningkatkan kompetensi peserta didik agar profesional dan berbudi luhur.
+        </p>
+      </div>
+      <hr style="margin: 20px 0; border-color: #eee;">
+      <div class="section">
+        <h3>Moto</h3>
+        <p>"Mengasihi dan Melayani."</p>
+      </div>
+    </div>
+  </div>
+  <footer class="site-footer">
+    <p>© <span id="currentYear"></span> Rumah Sakit Immanuel. All rights reserved.</p>
+  </footer>
+  <script>
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+    // Simple script to set active class, can be expanded
+    document.querySelectorAll('.navigation-bar a').forEach(link => {
+      if (link.href === window.location.href) {
+        link.classList.add('active');
+      }
+    });
+  </script>
+</body>
+</html>
