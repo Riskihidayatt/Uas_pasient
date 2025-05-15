@@ -54,6 +54,14 @@
         <input type="number" id="mch" step="0.1" required />
         <label for="mchc">MCHC (g/dL):</label>
         <input type="number" id="mchc" step="0.1" required />
+        <label for="aca_igg">ACA IgG (GPLu/ml):</label>
+        <input type="number" id="aca_igg" step="0.01" required />
+        <label for="aca_igm">ACA IgM (MPLu/ml):</label>
+        <input type="number" id="aca_igm" step="0.01" required />
+        <label for="beta2_gpi_igg">Beta2 GPI IgG (SGUu/ml):</label>
+        <input type="number" id="beta2_gpi_igg" step="0.01" required />
+        <label for="beta2_gpi_igm">Beta2 GPI IgM (SMUu/ml):</label>
+        <input type="number" id="beta2_gpi_igm" step="0.01" required />
         <button id="submitBtnLab">Simpan Data Lab</button>
       </div>
       <!-- Akhir Form -->
@@ -75,6 +83,10 @@
               <th>MCV</th>
               <th>MCH</th>
               <th>MCHC</th>
+              <th>ACA IgG</th>
+              <th>ACA IgM</th>
+              <th>Beta2 GPI IgG</th>
+              <th>Beta2 GPI IgM</th>
               <th>Aksi</th>
             </tr>
           </thead>
@@ -118,6 +130,10 @@
           document.getElementById("mcv").value = patient.mcv || "";
           document.getElementById("mch").value = patient.mch || "";
           document.getElementById("mchc").value = patient.mchc || "";
+          document.getElementById("aca_igg").value = patient.aca_igg || "";
+          document.getElementById("aca_igm").value = patient.aca_igm || "";
+          document.getElementById("beta2_gpi_igg").value = patient.beta2_gpi_igg || "";
+          document.getElementById("beta2_gpi_igm").value = patient.beta2_gpi_igm || "";
 
           document.getElementById("submitBtnLab").disabled = false;
           window.scrollTo({
@@ -139,6 +155,10 @@
         document.getElementById("mcv").value = "";
         document.getElementById("mch").value = "";
         document.getElementById("mchc").value = "";
+        document.getElementById("aca_igg").value = "";
+        document.getElementById("aca_igm").value = "";
+        document.getElementById("beta2_gpi_igg").value = "";
+        document.getElementById("beta2_gpi_igm").value = "";
         document.getElementById("selectedPatientName").textContent = "";
         selectedPatientForLab = null;
         document.getElementById("submitBtnLab").disabled = true; // Disable button if no patient selected
@@ -166,6 +186,10 @@
         const mcv = parseFloat(document.getElementById("mcv").value);
         const mch = parseFloat(document.getElementById("mch").value);
         const mchc = parseFloat(document.getElementById("mchc").value);
+        const aca_igg = parseFloat(document.getElementById("aca_igg").value);
+        const aca_igm = parseFloat(document.getElementById("aca_igm").value);
+        const beta2_gpi_igg = parseFloat(document.getElementById("beta2_gpi_igg").value);
+        const beta2_gpi_igm = parseFloat(document.getElementById("beta2_gpi_igm").value);
 
         if (
           isNaN(hemogoblin) ||
@@ -175,7 +199,12 @@
           isNaN(trombosit) ||
           isNaN(mcv) ||
           isNaN(mch) ||
-          isNaN(mchc)
+          isNaN(mchc) ||
+          isNaN(aca_igg) ||
+          isNaN(aca_igm) ||
+          isNaN(beta2_gpi_igg) ||
+          isNaN(beta2_gpi_igm)
+
         ) {
           alert(
             "Pastikan semua field hasil lab terisi dengan angka yang valid."
@@ -199,6 +228,10 @@
             mcv,
             mch,
             mchc,
+            aca_igg,
+            aca_igm,
+            beta2_gpi_igg,
+            beta2_gpi_igm,
           };
           localStorage.setItem("pasienList", JSON.stringify(pasienList));
           tampilkanDataPasienLab();
@@ -236,6 +269,10 @@
             <td>${pasien.mcv || "-"}</td>
             <td>${pasien.mch || "-"}</td>
             <td>${pasien.mchc || "-"}</td>
+            <td>${pasien.aca_igg || "-"}</td>
+            <td>${pasien.aca_igm || "-"}</td>
+            <td>${pasien.beta2_gpi_igg || "-"}</td>
+            <td>${pasien.beta2_gpi_igm || "-"}</td>
             <td>
               <button class="edit-btn" onclick="populateLabForm(${
                 pasien.id
@@ -520,6 +557,49 @@
                     <td>${determineLabRemark(
                       selectedPasien.mchc,
                       "32-36",
+                      selectedPasien.jekel
+                    )}</td>
+                  </tr>
+                  <tr>
+                    <td>ACA IgG</td>
+                    <td>${selectedPasien.aca_igg || "-"}</td>
+                    <td>GPLu/ml</td>
+                    <td><15</td>
+                    <td>${determineLabRemark(
+                      selectedPasien. aca_igg,
+                      "<15",
+                      selectedPasien.jekel
+                    )}</td>
+                  </tr>
+                  <tr>
+                    <td>ACA IgM</td>
+                    <td>${selectedPasien.aca_igm || "-"}</td>
+                    <td>MPLu/ml</td>
+                    <td><12,5</td>
+                    <td>${determineLabRemark(
+                      selectedPasien.aca_igm,
+                      "<12,5",
+                      selectedPasien.jekel
+                    )}</td>
+                  </tr>
+                  <tr>
+                    <td>Beta2 GPI IgG</td>
+                    <td>${selectedPasien.beta2_gpi_igg || "-"}</td>
+                    <td>SGUu/ml</td>
+                    <td>≤20</td>
+                    <td>${determineLabRemark(
+                      selectedPasien.beta2_gpi_igg,
+                      "≤20",
+                      selectedPasien.jekel
+                    )}</td>
+                  </tr>
+                  <td>Beta2 GPI IgM</td>
+                    <td>${selectedPasien.beta2_gpi_igm || "-"}</td>
+                    <td>SMUu/ml</td>
+                    <td>≤20</td>
+                    <td>${determineLabRemark(
+                      selectedPasien.beta2_gpi_igm,
+                      "≤20",
                       selectedPasien.jekel
                     )}</td>
                   </tr>
