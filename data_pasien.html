@@ -236,8 +236,37 @@
       }
     }
 
+    // Fungsi untuk menambahkan data pasien Fufufafa jika belum ada
+    function addFufufafaPatient() {
+      let pasienList = JSON.parse(localStorage.getItem("pasienList") || "[]");
+      
+      // Cek apakah pasien Fufufafa sudah ada
+      const existingPatient = pasienList.find(p => p.nama === "Fufufafa");
+      
+      if (!existingPatient) {
+        const newPatient = {
+          id: pasienList.length > 0 ? Math.max(...pasienList.map(p => p.id)) + 1 : 1,
+          nama: "Fufufafa",
+          umur: 32,
+          jekel: "L", // Laki-laki
+          alamat: "Jalan Kaskus, Gang Oslo No. 1",
+          tanggal: new Date().toISOString(),
+          diagnosa: "Suspek Hepatitis B",
+          dokter_pengirim: "dr. Dedi Mulyadi, Sp.PD",
+          penanggung_jawab: "dr. Laboratorium Klinik"
+        };
+        
+        pasienList.push(newPatient);
+        localStorage.setItem("pasienList", JSON.stringify(pasienList));
+        console.log("Data pasien Fufufafa berhasil ditambahkan di halaman data pasien");
+      }
+    }
+
     document.getElementById('submitBtn').addEventListener('click', simpanData);
-    document.addEventListener('DOMContentLoaded', tampilkanDatapasien);
+    document.addEventListener('DOMContentLoaded', () => {
+      addFufufafaPatient(); // Tambahkan data Fufufafa jika belum ada
+      tampilkanDatapasien();
+    });
 
     // Active link highlighting
     document.querySelectorAll('.navigation-bar a').forEach(link => {

@@ -54,14 +54,16 @@
         <input type="number" id="mch" step="0.1" required />
         <label for="mchc">MCHC (g/dL):</label>
         <input type="number" id="mchc" step="0.1" required />
-        <label for="aca_igg">ACA IgG (GPLu/ml):</label>
-        <input type="number" id="aca_igg" step="0.01" required />
-        <label for="aca_igm">ACA IgM (MPLu/ml):</label>
-        <input type="number" id="aca_igm" step="0.01" required />
-        <label for="beta2_gpi_igg">Beta2 GPI IgG (SGUu/ml):</label>
-        <input type="number" id="beta2_gpi_igg" step="0.01" required />
-        <label for="beta2_gpi_igm">Beta2 GPI IgM (SMUu/ml):</label>
-        <input type="number" id="beta2_gpi_igm" step="0.01" required />
+        <label for="ast">AST (mg/dL):</label>
+        <input type="number" id="ast" step="1" required />
+        <label for="alt">ALT (mg/dL):</label>
+        <input type="number" id="alt" step="1" required />
+        <label for="hbsag">HBsAg:</label>
+        <select id="hbsag" required>
+          <option value="">Pilih hasil</option>
+          <option value="Negatif (-)">Negatif (-)</option>
+          <option value="Positif (+)">Positif (+)</option>
+        </select>
         <button id="submitBtnLab">Simpan Data Lab</button>
       </div>
       <!-- Akhir Form -->
@@ -83,10 +85,9 @@
               <th>MCV</th>
               <th>MCH</th>
               <th>MCHC</th>
-              <th>ACA IgG</th>
-              <th>ACA IgM</th>
-              <th>Beta2 GPI IgG</th>
-              <th>Beta2 GPI IgM</th>
+              <th>AST</th>
+              <th>ALT</th>
+              <th>HBsAg</th>
               <th>Aksi</th>
             </tr>
           </thead>
@@ -130,10 +131,9 @@
           document.getElementById("mcv").value = patient.mcv || "";
           document.getElementById("mch").value = patient.mch || "";
           document.getElementById("mchc").value = patient.mchc || "";
-          document.getElementById("aca_igg").value = patient.aca_igg || "";
-          document.getElementById("aca_igm").value = patient.aca_igm || "";
-          document.getElementById("beta2_gpi_igg").value = patient.beta2_gpi_igg || "";
-          document.getElementById("beta2_gpi_igm").value = patient.beta2_gpi_igm || "";
+          document.getElementById("ast").value = patient.ast || "";
+          document.getElementById("alt").value = patient.alt || "";
+          document.getElementById("hbsag").value = patient.hbsag || "";
 
           document.getElementById("submitBtnLab").disabled = false;
           window.scrollTo({
@@ -155,10 +155,9 @@
         document.getElementById("mcv").value = "";
         document.getElementById("mch").value = "";
         document.getElementById("mchc").value = "";
-        document.getElementById("aca_igg").value = "";
-        document.getElementById("aca_igm").value = "";
-        document.getElementById("beta2_gpi_igg").value = "";
-        document.getElementById("beta2_gpi_igm").value = "";
+        document.getElementById("ast").value = "";
+        document.getElementById("alt").value = "";
+        document.getElementById("hbsag").value = "";
         document.getElementById("selectedPatientName").textContent = "";
         selectedPatientForLab = null;
         document.getElementById("submitBtnLab").disabled = true; // Disable button if no patient selected
@@ -186,10 +185,9 @@
         const mcv = parseFloat(document.getElementById("mcv").value);
         const mch = parseFloat(document.getElementById("mch").value);
         const mchc = parseFloat(document.getElementById("mchc").value);
-        const aca_igg = parseFloat(document.getElementById("aca_igg").value);
-        const aca_igm = parseFloat(document.getElementById("aca_igm").value);
-        const beta2_gpi_igg = parseFloat(document.getElementById("beta2_gpi_igg").value);
-        const beta2_gpi_igm = parseFloat(document.getElementById("beta2_gpi_igm").value);
+        const ast = parseFloat(document.getElementById("ast").value);
+        const alt = parseFloat(document.getElementById("alt").value);
+        const hbsag = document.getElementById("hbsag").value;
 
         if (
           isNaN(hemogoblin) ||
@@ -200,10 +198,9 @@
           isNaN(mcv) ||
           isNaN(mch) ||
           isNaN(mchc) ||
-          isNaN(aca_igg) ||
-          isNaN(aca_igm) ||
-          isNaN(beta2_gpi_igg) ||
-          isNaN(beta2_gpi_igm)
+          isNaN(ast) ||
+          isNaN(alt) ||
+          !hbsag
 
         ) {
           alert(
@@ -228,10 +225,9 @@
             mcv,
             mch,
             mchc,
-            aca_igg,
-            aca_igm,
-            beta2_gpi_igg,
-            beta2_gpi_igm,
+            ast,
+            alt,
+            hbsag,
           };
           localStorage.setItem("pasienList", JSON.stringify(pasienList));
           tampilkanDataPasienLab();
@@ -269,10 +265,9 @@
             <td>${pasien.mcv || "-"}</td>
             <td>${pasien.mch || "-"}</td>
             <td>${pasien.mchc || "-"}</td>
-            <td>${pasien.aca_igg || "-"}</td>
-            <td>${pasien.aca_igm || "-"}</td>
-            <td>${pasien.beta2_gpi_igg || "-"}</td>
-            <td>${pasien.beta2_gpi_igm || "-"}</td>
+            <td>${pasien.ast || "-"}</td>
+            <td>${pasien.alt || "-"}</td>
+            <td>${pasien.hbsag || "-"}</td>
             <td>
               <button class="edit-btn" onclick="populateLabForm(${
                 pasien.id
@@ -343,27 +338,49 @@
                 relevantRangeStr =
                   String(gender).toUpperCase() === "L" ? lPart : pPart;
               }
-              const rangeParts = relevantRangeStr
-                .split("-")
-                .map((s) => s.trim());
-              if (rangeParts.length !== 2) {
-                console.warn("Invalid normal range format:", normalRangeString);
+              // Handle different range formats
+              let rangeParts;
+              if (relevantRangeStr.includes("≤")) {
+                // Handle format like "≤37" or "≤40"
+                const maxValue = parseRangeValue(relevantRangeStr.replace("≤", "").trim());
+                if (isNaN(maxValue)) {
+                  console.warn("Could not parse max value from:", relevantRangeStr);
+                  return "";
+                }
+                return result > maxValue ? "H" : "";
+              } else if (relevantRangeStr.includes("<")) {
+                // Handle format like "<15" or "<12,5"
+                const maxValue = parseRangeValue(relevantRangeStr.replace("<", "").trim());
+                if (isNaN(maxValue)) {
+                  console.warn("Could not parse max value from:", relevantRangeStr);
+                  return "";
+                }
+                return result >= maxValue ? "H" : "";
+              } else {
+                // Handle range format like "32-36"
+                rangeParts = relevantRangeStr.split("-").map((s) => s.trim());
+                if (rangeParts.length !== 2) {
+                  console.warn("Invalid normal range format:", normalRangeString);
+                  return "";
+                }
+              }
+              // Only process if rangeParts is defined (for range format)
+              if (rangeParts) {
+                const minNormal = parseRangeValue(rangeParts[0]);
+                const maxNormal = parseRangeValue(rangeParts[1]);
+                if (isNaN(minNormal) || isNaN(maxNormal)) {
+                  console.warn(
+                    "Could not parse min/max from range:",
+                    relevantRangeStr,
+                    minNormal,
+                    maxNormal
+                  );
+                  return "";
+                }
+                if (result < minNormal) return "L";
+                if (result > maxNormal) return "H";
                 return "";
               }
-              const minNormal = parseRangeValue(rangeParts[0]);
-              const maxNormal = parseRangeValue(rangeParts[1]);
-              if (isNaN(minNormal) || isNaN(maxNormal)) {
-                console.warn(
-                  "Could not parse min/max from range:",
-                  relevantRangeStr,
-                  minNormal,
-                  maxNormal
-                );
-                return "";
-              }
-              if (result < minNormal) return "L";
-              if (result > maxNormal) return "H";
-              return "";
             }
             printWindow.document.write(`
           <!DOCTYPE html>
@@ -561,47 +578,33 @@
                     )}</td>
                   </tr>
                   <tr>
-                    <td>ACA IgG</td>
-                    <td>${selectedPasien.aca_igg || "-"}</td>
-                    <td>GPLu/ml</td>
-                    <td><15</td>
+                    <td>AST</td>
+                    <td>${selectedPasien.ast || "-"}</td>
+                    <td>mg/dL</td>
+                    <td>L: ≤37 ; P: ≤31</td>
                     <td>${determineLabRemark(
-                      selectedPasien. aca_igg,
-                      "<15",
+                      selectedPasien.ast,
+                      "L: ≤37 ; P: ≤31",
                       selectedPasien.jekel
                     )}</td>
                   </tr>
                   <tr>
-                    <td>ACA IgM</td>
-                    <td>${selectedPasien.aca_igm || "-"}</td>
-                    <td>MPLu/ml</td>
-                    <td><12,5</td>
+                    <td>ALT</td>
+                    <td>${selectedPasien.alt || "-"}</td>
+                    <td>mg/dL</td>
+                    <td>L: ≤40 ; P: ≤32</td>
                     <td>${determineLabRemark(
-                      selectedPasien.aca_igm,
-                      "<12,5",
+                      selectedPasien.alt,
+                      "L: ≤40 ; P: ≤32",
                       selectedPasien.jekel
                     )}</td>
                   </tr>
                   <tr>
-                    <td>Beta2 GPI IgG</td>
-                    <td>${selectedPasien.beta2_gpi_igg || "-"}</td>
-                    <td>SGUu/ml</td>
-                    <td>≤20</td>
-                    <td>${determineLabRemark(
-                      selectedPasien.beta2_gpi_igg,
-                      "≤20",
-                      selectedPasien.jekel
-                    )}</td>
-                  </tr>
-                  <td>Beta2 GPI IgM</td>
-                    <td>${selectedPasien.beta2_gpi_igm || "-"}</td>
-                    <td>SMUu/ml</td>
-                    <td>≤20</td>
-                    <td>${determineLabRemark(
-                      selectedPasien.beta2_gpi_igm,
-                      "≤20",
-                      selectedPasien.jekel
-                    )}</td>
+                    <td>HBsAg</td>
+                    <td>${selectedPasien.hbsag || "-"}</td>
+                    <td>-</td>
+                    <td>Negatif (-)</td>
+                    <td>${selectedPasien.hbsag === "Positif (+)" ? "Reaktif" : selectedPasien.hbsag === "Negatif (-)" ? "" : "-"}</td>
                   </tr>
                 </tbody>
               </table>
@@ -634,7 +637,45 @@
       document
         .getElementById("submitBtnLab")
         .addEventListener("click", saveLabData);
+      // Fungsi untuk menambahkan data pasien Fufufafa jika belum ada
+      function addFufufafaPatient() {
+        let pasienList = JSON.parse(localStorage.getItem("pasienList") || "[]");
+        
+        // Cek apakah pasien Fufufafa sudah ada
+        const existingPatient = pasienList.find(p => p.nama === "Fufufafa");
+        
+        if (!existingPatient) {
+          const newPatient = {
+            id: pasienList.length > 0 ? Math.max(...pasienList.map(p => p.id)) + 1 : 1,
+            nama: "Fufufafa",
+            umur: 32,
+            jekel: "L", // Laki-laki
+            alamat: "Jalan Kaskus, Gang Oslo No. 1",
+            tanggal: new Date().toISOString(),
+            diagnosa: "Suspek Hepatitis B",
+            dokter_pengirim: "dr. Dedi Mulyadi, Sp.PD",
+            hemogoblin: 13.5,
+            hematokrit: 41,
+            leukosit: 15670,
+            eritrosit: 6.7, // 6.700.000 /uL = 6.7 juta/mikroliter
+            trombosit: 403000,
+            mcv: 61.2, // Perhitungan: (41 × 10) / 6.7 = 61.2 fL
+            mch: 20.1, // Perhitungan: (13.5 × 10) / 6.7 = 20.1 pg
+            mchc: 32.9, // Perhitungan: (13.5 × 100) / 41 = 32.9 g/dL
+            ast: 280,
+            alt: 167,
+            hbsag: "Positif (+)",
+            penanggung_jawab: "dr. Laboratorium Klinik"
+          };
+          
+          pasienList.push(newPatient);
+          localStorage.setItem("pasienList", JSON.stringify(pasienList));
+          console.log("Data pasien Fufufafa berhasil ditambahkan");
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
+        addFufufafaPatient(); // Tambahkan data Fufufafa jika belum ada
         tampilkanDataPasienLab();
         resetLabForm(); // Ensure form is reset and button disabled on load
       });
